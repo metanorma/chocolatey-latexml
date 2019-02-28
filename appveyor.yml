@@ -1,0 +1,35 @@
+version: '{build}'
+
+environment:
+  CHOCO_API_KEY:
+    secure: hsyCpvNm18kiTWHdcPSN7PLra8FGfypgnSuviKQMBdY1LGnpjE4//JD1uQ+vnzU5
+
+build_script:
+  - choco pack
+
+test_script:
+  - choco install latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
+  - refreshenv
+  - set PATH=C:\Strawberry\perl\bin;%PATH%
+  - C:\Strawberry\perl\site\bin\latexml --dest=test.xml test.tex
+  - refreshenv
+  - choco uninstall latexml -y
+  - which latexml
+
+deploy_script:
+  - ps: |
+      if ($Env:APPVEYOR_REPO_TAG -eq "true") {
+        $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
+        $pkgVersion = Select-Xml -Path $Env:APPVEYOR_BUILD_FOLDER\latexml.nuspec `
+             -XPath "/nuspec:package/nuspec:metadata/nuspec:version/text()" `
+             -Namespace $namespaces | Select-Object -Expand Node | Select-Object -Expand Data
+        choco apikey -key $Env:CHOCO_API_KEY -source https://chocolatey.org/
+        choco push $Env:APPVEYOR_BUILD_FOLDER\latexml.${pkgVersion}.nupkg -source https://chocolatey.org/
+      } else {
+        Write-Host Skip deployment for non tag commits
+      }
+
+on_finish:
+  - ps: Push-AppveyorArtifact $Env:APPVEYOR_BUILD_FOLDER\test.xml
+  - ps: Push-AppveyorArtifact C:\ProgramData\chocolatey\logs\chocolatey.log
+  - ps: Get-ChildItem C:\Users\appveyor\.cpanm\work\*\build.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }

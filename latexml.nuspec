@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Test your packages in a test environment: https://github.com/chocolatey/chocolatey-test-environment -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>latexml</id>
+    <version>0.8.3</version>
+    <owners>ribose</owners>
+    <title>LaTeXML</title>
+    <authors>NIST</authors>
+    <iconUrl>https://dlmf.nist.gov/LaTeXML/x7.png</iconUrl>
+    <projectUrl>https://dlmf.nist.gov/LaTeXML/</projectUrl>
+    <copyright>Public Domain</copyright>
+    <licenseUrl>https://creativecommons.org/share-your-work/public-domain/cc0</licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/brucemiller/LaTeXML</projectSourceUrl>
+    <packageSourceUrl>https://github.com/brucemiller/LaTeXML</packageSourceUrl>
+    <releaseNotes>https://github.com/brucemiller/LaTeXML/releases</releaseNotes>
+    <docsUrl>https://dlmf.nist.gov/LaTeXML/docs.html</docsUrl>
+    <bugTrackerUrl>https://github.com/brucemiller/LaTeXML/issues</bugTrackerUrl>
+    <tags>metanorma latex dlmf nist xml html mathml</tags>
+    <summary>A LaTeX to XML/HTML/MathML Converter</summary>
+    <description><![CDATA[In the process of developing the Digital Library of Mathematical Functions, NIST had needed a means of transforming the LaTeX sources of our material into XML which would be used for further manipulations, rearrangements and construction of the web site. In particular, a true ‘Digital Library’ should focus on the semantics of the material, and so NIST should convert the mathematical material into both content and presentation MathML. At the time, there found no software suitable to our needs, so NIST began development of LaTeXML in-house.]]></description>
+    <dependencies>
+      <dependency id="strawberryperl" version="5.28.1.1" />
+      <!-- miktex will be installed manually to make sure that it's belong to right Perl distribution -->
+      <!--dependency id="miktex" version="2.9.6942" /-->
+      <dependency id="imagemagick.tool" version="6.8.9.1" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

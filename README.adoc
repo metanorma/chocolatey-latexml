@@ -1,4 +1,4 @@
-image:https://ci.appveyor.com/api/projects/status/l0i1kvh7o5qfk3ws?svg=true["Build Status", link="https://ci.appveyor.com/project/ribose/chocolatey-latexml"]
+image:https://ci.appveyor.com/api/projects/status/evanr46yj1t4l9fe?svg=true["Build Status", link="https://ci.appveyor.com/project/ribose/chocolatey-latexml"]
 
 = chocolatey-latexml: Chocolatey install for LaTeXML
 

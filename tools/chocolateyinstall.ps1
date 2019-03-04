@@ -6,6 +6,6 @@ if (!(Test-Path -Path "$Env:ChocolateyInstall\lib\miktex")) {
    & cinst -y miktex
 }
 
-& cpanm --v LaTeXML
+& cpanm --v LaTeXML@$Env:ChocolateyPackageVersion
 
 Get-Command latexml | Select-Object -ExpandProperty Definition

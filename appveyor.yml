@@ -8,13 +8,21 @@ build_script:
   - choco pack
 
 test_script:
+  # install
   - choco install latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
   - refreshenv
+  # test
   - set PATH=C:\Strawberry\perl\bin;%PATH%
   - C:\Strawberry\perl\site\bin\latexml --dest=test.xml test.tex
   - refreshenv
+  - if NOT exist test.xml exit 1
+  - ps: |
+      $found = Select-String -Path $Env:APPVEYOR_BUILD_FOLDER\test.xml -Pattern "ERROR"
+      if ($found) {
+        exit 1
+      }
+  # uninstall
   - choco uninstall latexml -y
-  - which latexml
 
 deploy_script:
   - ps: |

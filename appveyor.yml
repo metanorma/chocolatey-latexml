@@ -40,4 +40,4 @@ deploy_script:
 on_finish:
   - ps: Push-AppveyorArtifact $Env:APPVEYOR_BUILD_FOLDER\test.xml
   - ps: Push-AppveyorArtifact C:\ProgramData\chocolatey\logs\chocolatey.log
-  - ps: Get-ChildItem C:\Users\appveyor\.cpanm\work\*\build.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+  - ps: Get-ChildItem C:\Users\appveyor\.cpanm\work\*\build.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.FullName }

@@ -13,7 +13,7 @@
     <licenseUrl>https://creativecommons.org/share-your-work/public-domain/cc0</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/brucemiller/LaTeXML</projectSourceUrl>
-    <packageSourceUrl>https://github.com/brucemiller/LaTeXML</packageSourceUrl>
+    <packageSourceUrl>https://github.com/riboseinc/chocolatey-latexml</packageSourceUrl>
     <releaseNotes>https://github.com/brucemiller/LaTeXML/releases</releaseNotes>
     <docsUrl>https://dlmf.nist.gov/LaTeXML/docs.html</docsUrl>
     <bugTrackerUrl>https://github.com/brucemiller/LaTeXML/issues</bugTrackerUrl>

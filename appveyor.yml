@@ -10,7 +10,13 @@ build_script:
 test_script:
   # install
   - choco install latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
+  - choco install wget unzip
   - refreshenv
+  - wget https://miktex.org/download/win/miktexsetup-x64.zip
+  - unzip miktexsetup-x64.zip
+  - setlocal enableextensions
+  - md C:\temp\miktex
+  - miktexsetup.exe --quiet --local-package-repository=C:\temp\miktex --package-set=basic download
   # test
   - set PATH=C:\Strawberry\perl\bin;%PATH%
   - C:\Strawberry\perl\site\bin\latexml --dest=test.xml test.tex

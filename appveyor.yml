@@ -9,24 +9,21 @@ build_script:
 
 test_script:
   # install
-  - choco install latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
+  - choco install latexml -d -s "'.;https://chocolatey.org/api/v2/'"
   - choco install wget unzip
+  # test without miktex
+  - test\tex2xml.cmd
+  - powershell -command "& .\test\test.ps1 0 1"
   - refreshenv
   - wget https://miktex.org/download/win/miktexsetup-x64.zip
   - unzip miktexsetup-x64.zip
   - setlocal enableextensions
   - md C:\temp\miktex
   - miktexsetup.exe --quiet --local-package-repository=C:\temp\miktex --package-set=basic download
-  # test
-  - set PATH=C:\Strawberry\perl\bin;%PATH%
-  - C:\Strawberry\perl\site\bin\latexml --dest=test.xml test.tex
+  # test with miktex
+  - test\tex2xml.cmd
+  - powershell -command "& .\test\test.ps1 0 1"
   - refreshenv
-  - if NOT exist test.xml exit 1
-  - ps: |
-      $found = Select-String -Path $Env:APPVEYOR_BUILD_FOLDER\test.xml -Pattern "ERROR"
-      if ($found) {
-        exit 1
-      }
   # uninstall
   - choco uninstall latexml -y
 
@@ -44,6 +41,8 @@ deploy_script:
       }
 
 on_finish:
-  - ps: Push-AppveyorArtifact $Env:APPVEYOR_BUILD_FOLDER\test.xml
+  - ps: Push-AppveyorArtifact $Env:APPVEYOR_BUILD_FOLDER\basic-test.xml
+  - ps: Push-AppveyorArtifact $Env:APPVEYOR_BUILD_FOLDER\color-test.xml
+  - ps: Push-AppveyorArtifact $Env:APPVEYOR_BUILD_FOLDER\ntheorem-test.xml
   - ps: Push-AppveyorArtifact C:\ProgramData\chocolatey\logs\chocolatey.log
   - ps: Get-ChildItem C:\Users\appveyor\.cpanm\work\*\build.log | % { Push-AppveyorArtifact $_.FullName -FileName $_.FullName }

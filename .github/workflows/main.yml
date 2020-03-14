@@ -69,7 +69,7 @@ jobs:
       - name: Push to chocolatey
         shell: pwsh
         env:
-          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+          CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: |
           $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
           $pkgVersion = Select-Xml -Path latexml.nuspec `

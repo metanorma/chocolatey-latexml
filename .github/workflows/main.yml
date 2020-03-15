@@ -34,8 +34,9 @@ jobs:
       - name: Install chocolatey package
         shell: cmd
         run: |
-          choco install latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
-          choco install wget unzip
+          move nupkg\*.nupkg .\
+          choco install --no-progress latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
+          choco install --no-progress wget unzip
           wget https://miktex.org/download/win/miktexsetup-x64.zip
           unzip miktexsetup-x64.zip
           setlocal enableextensions
@@ -71,6 +72,7 @@ jobs:
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: |
+          Move-Item nupkg\*.nupkg .\
           $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
           $pkgVersion = Select-Xml -Path latexml.nuspec `
                -XPath "/nuspec:package/nuspec:metadata/nuspec:version/text()" `

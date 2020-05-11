@@ -19,7 +19,7 @@ jobs:
         run: |
           FOR /F "tokens=*" %%g IN ('powershell -noprofile "ls latexml.*.nupkg | ForEach-Object {$_.FullName}"') do (SET NUPKG=%%g)
           echo ##[set-output name=nupkg;]%NUPKG%
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v2
         with:
           name: nupkg
           path: ${{ steps.findnupkg.outputs.nupkg }}
@@ -28,13 +28,12 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@master
-      - uses: actions/download-artifact@master
+      - uses: actions/download-artifact@v2
         with:
           name: nupkg
       - name: Install chocolatey package
         shell: cmd
         run: |
-          move nupkg\*.nupkg .\
           choco install --no-progress latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
           choco install --no-progress wget unzip
           wget https://miktex.org/download/win/miktexsetup-x64.zip
@@ -64,7 +63,7 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@master
-      - uses: actions/download-artifact@master
+      - uses: actions/download-artifact@v2
         with:
           name: nupkg
       - name: Push to chocolatey
@@ -72,7 +71,6 @@ jobs:
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: |
-          Move-Item nupkg\*.nupkg .\
           $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
           $pkgVersion = Select-Xml -Path latexml.nuspec `
                -XPath "/nuspec:package/nuspec:metadata/nuspec:version/text()" `

@@ -1,7 +1,9 @@
-image:https://ci.appveyor.com/api/projects/status/evanr46yj1t4l9fe?svg=true["Build Status", link="https://ci.appveyor.com/project/ribose/chocolatey-latexml"]
+image:https://github.com/metanorma/chocolatey-latexml/workflows/main/badge.svg["Build Status", link="https://github.com/metanorma/chocolatey-latexml/actions?query=workflow%3Amain"]
 
 = chocolatey-latexml: Chocolatey install for LaTeXML
 
+* https://github.com/metanorma/chocolatey-latexml[`master`] branch - for stable releases
+* https://github.com/metanorma/chocolatey-latexml/tree/beta[`beta`] branch - for releases from https://github.com/brucemiller/LaTeXML git
 
 == Modifying the package
 

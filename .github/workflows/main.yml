@@ -2,8 +2,8 @@ name: main
 
 on:
   push:
-    branches: [ master ]
-    tags: [ 'v*' ]
+    branches: [ beta ]
+    tags: [ '*' ]
   pull_request:
 
 jobs:

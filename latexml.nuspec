@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>latexml.beta</id>
-    <version>9a0e7dc5</version>
+    <version>0.8.4</version>
     <owners>ribose</owners>
     <title>LaTeXML</title>
     <authors>NIST</authors>

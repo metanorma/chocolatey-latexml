@@ -1,6 +1,6 @@
-image:https://github.com/metanorma/chocolatey-latexml/workflows/main/badge.svg["Build Status", link="https://github.com/metanorma/chocolatey-latexml/actions?query=workflow%3Amain"]
+image:https://github.com/metanorma/chocolatey-latexml/workflows/main/badge.svg?branch=beta["Build Status", link="https://github.com/metanorma/chocolatey-latexml/actions?query=workflow%3Amain+branch%3Abeta"]
 
-= chocolatey-latexml: Chocolatey install for LaTeXML
+= chocolatey-latexml: Chocolatey install for LaTeXML (BETA)
 
 * https://github.com/metanorma/chocolatey-latexml[`master`] branch - for stable releases
 * https://github.com/metanorma/chocolatey-latexml/tree/beta[`beta`] branch - for releases from https://github.com/brucemiller/LaTeXML git

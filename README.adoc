@@ -1,4 +1,6 @@
 image:https://github.com/metanorma/chocolatey-latexml/workflows/main/badge.svg["Build Status", link="https://github.com/metanorma/chocolatey-latexml/actions?query=workflow%3Amain"]
+image:https://img.shields.io/chocolatey/v/latexml.svg["Version", link="https://chocolatey.org/packages/latexml"]
+image:https://img.shields.io/chocolatey/dt/latexml.svg["Downloads", link="https://chocolatey.org/packages/latexml"]
 
 = chocolatey-latexml: Chocolatey install for LaTeXML
 

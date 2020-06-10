@@ -34,7 +34,7 @@ jobs:
       - name: Install chocolatey package
         shell: cmd
         run: |
-          choco install --no-progress latexml.beta -dv -s "'.;https://chocolatey.org/api/v2/'"
+          choco install --no-progress latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
           choco install --no-progress wget unzip
           wget https://miktex.org/download/win/miktexsetup-x64.zip
           unzip miktexsetup-x64.zip
@@ -56,7 +56,7 @@ jobs:
       - name: Uninstall chocolatey package
         shell: pwsh
         run: |
-          choco uninstall latexml.beta -y
+          choco uninstall latexml -y
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
@@ -72,8 +72,8 @@ jobs:
           CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
         run: |
           $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
-          $pkgVersion = Select-Xml -Path latexml.beta.nuspec `
+          $pkgVersion = Select-Xml -Path latexml.nuspec `
                -XPath "/nuspec:package/nuspec:metadata/nuspec:version/text()" `
                -Namespace $namespaces | Select-Object -Expand Node | Select-Object -Expand Data
           choco apikey -key $Env:CHOCO_API_KEY -source https://chocolatey.org/
-          choco push latexml.beta.${pkgVersion}.nupkg -source https://chocolatey.org/
+          choco push latexml.${pkgVersion}.nupkg -source https://chocolatey.org/

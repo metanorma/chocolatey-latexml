@@ -2,8 +2,8 @@
 <!-- Test your packages in a test environment: https://github.com/chocolatey/chocolatey-test-environment -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
-    <id>latexml.beta</id>
-    <version>0.8.4.39438</version>
+    <id>latexml</id>
+    <version>0.8.4.39438-beta</version>
     <owners>ribose</owners>
     <title>LaTeXML</title>
     <authors>NIST</authors>

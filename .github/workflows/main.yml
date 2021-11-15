@@ -11,70 +11,69 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@master
-      - name: Build chocolatey package
-        run: choco pack
-      - name: Find package path
-        id: findnupkg
-        shell: cmd
-        run: |
-          FOR /F "tokens=*" %%g IN ('powershell -noprofile "ls latexml.*.nupkg | ForEach-Object {$_.FullName}"') do (SET NUPKG=%%g)
-          echo ##[set-output name=nupkg;]%NUPKG%
-      - uses: actions/upload-artifact@v2
-        with:
-          name: nupkg
-          path: ${{ steps.findnupkg.outputs.nupkg }}
+    - uses: actions/checkout@v2
+
+    - run: choco pack
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: nupkg
+        path: latexml.*.nupkg
+
   test:
     runs-on: windows-latest
     needs: build
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/download-artifact@v2
-        with:
-          name: nupkg
-      - name: Install chocolatey package
-        shell: cmd
-        run: |
-          choco install --no-progress latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
-          choco install --no-progress wget unzip
-          wget https://miktex.org/download/win/miktexsetup-x64.zip
-          unzip miktexsetup-x64.zip
-          setlocal enableextensions
-          md C:\temp\miktex
-          miktexsetup.exe --quiet --local-package-repository=C:\temp\miktex --package-set=basic download
-          refreshenv
-      - name: Test latexml available in PATH
-        shell: cmd
-        run: |
-          where latexml
-      - name: Test compilation
-        shell: pwsh
-        run: |
-          Get-Command latexml
-          & latexml --dest=test.xml test.tex
-          if (!(Test-Path .\test.xml)) { exit 1 }
-          if (Select-String -Path .\test.xml -Pattern "ERROR") { exit 1 }
-      - name: Uninstall chocolatey package
-        shell: pwsh
-        run: |
-          choco uninstall latexml -y
+    - uses: actions/checkout@v2
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: nupkg
+
+    - run: choco install --no-progress latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
+
+    - run: choco install --no-progress wget unzip
+
+    - name: install miktexsetup
+      shell: cmd
+      run: |
+        wget https://miktex.org/download/win/miktexsetup-x64.zip
+        unzip miktexsetup-x64.zip
+        setlocal enableextensions
+        md C:\temp\miktex
+        .\miktexsetup_standalone.exe --quiet --local-package-repository=C:\temp\miktex --package-set=basic download
+
+    - name: test latexml available in PATH
+      run: |
+        Update-SessionEnvironment
+        Get-Command latexml
+
+    - name: test compilation
+      run: |
+        & latexml --dest=test.xml test.tex
+        if (!(Test-Path .\test.xml)) { exit 1 }
+        if (Select-String -Path .\test.xml -Pattern "ERROR") { exit 1 }
+
+    - run: choco uninstall latexml -y
+
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     needs: test
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/download-artifact@v2
-        with:
-          name: nupkg
-      - name: Push to chocolatey
-        shell: pwsh
-        env:
-          CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-        run: |
-          $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
-          $pkgVersion = Select-Xml -Path latexml.nuspec `
-               -XPath "/nuspec:package/nuspec:metadata/nuspec:version/text()" `
-               -Namespace $namespaces | Select-Object -Expand Node | Select-Object -Expand Data
-          choco apikey -key $Env:CHOCO_API_KEY -source https://chocolatey.org/
-          choco push latexml.${pkgVersion}.nupkg -source https://chocolatey.org/
+    - uses: actions/checkout@v2
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: nupkg
+
+    - name: push to chocolatey
+      env:
+        CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+      run: |
+        $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
+        $pkgVersion = Select-Xml -Path latexml.nuspec `
+             -XPath "/nuspec:package/nuspec:metadata/nuspec:version/text()" `
+             -Namespace $namespaces | Select-Object -Expand Node | Select-Object -Expand Data
+        choco apikey -key $Env:CHOCO_API_KEY -source https://chocolatey.org/
+        choco push latexml.${pkgVersion}.nupkg -source https://chocolatey.org/

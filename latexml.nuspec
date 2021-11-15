@@ -21,8 +21,7 @@
     <summary>A LaTeX to XML/HTML/MathML Converter</summary>
     <description><![CDATA[In the process of developing the Digital Library of Mathematical Functions, NIST had needed a means of transforming the LaTeX sources of our material into XML which would be used for further manipulations, rearrangements and construction of the web site. In particular, a true ‘Digital Library’ should focus on the semantics of the material, and so NIST should convert the mathematical material into both content and presentation MathML. At the time, there found no software suitable to our needs, so NIST began development of LaTeXML in-house.]]></description>
     <dependencies>
-      <dependency id="strawberryperl" version="[5.28,)"/>
-      <dependency id="imagemagick.tool" version="[6.0,)"/>
+      <dependency id="strawberryperl" version="[5.28,)" />
     </dependencies>
   </metadata>
   <files>

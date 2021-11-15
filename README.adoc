@@ -4,7 +4,7 @@ image:https://img.shields.io/chocolatey/dt/latexml.svg["Downloads", link="https:
 
 = chocolatey-latexml: Chocolatey install for LaTeXML
 
-* https://github.com/metanorma/chocolatey-latexml[`master`] branch - for stable releases
+* https://github.com/metanorma/chocolatey-latexml[`main`] branch - for stable releases
 * https://github.com/metanorma/chocolatey-latexml/tree/beta[`beta`] branch - for releases from https://github.com/brucemiller/LaTeXML git
 
 == Modifying the package

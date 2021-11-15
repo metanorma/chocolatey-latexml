@@ -1,0 +1,60 @@
+name: release-tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      next_version:
+        description: |
+          Next release version. Possible values: x.y.z, major, minor, patch or pre|rc|etc
+        required: true
+        default: 'skip'
+
+jobs:
+  push-tag:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: Add writable remote
+      run: |
+        git config --global user.name "metanorma-ci"
+        git config --global user.email "metanorma-ci@users.noreply.github.com"
+        git remote add github "https://metanorma-ci:${{ secrets.METANORMA_CI_PAT_TOKEN }}@github.com/$GITHUB_REPOSITORY.git"
+        git pull github ${GITHUB_REF} --ff-only
+    - name: install xmllint
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y libxml2-utils
+    - name: parse version
+      env:
+        LATEXML_TAG: ${{ github.event.inputs.next_version }}
+      shell: python
+      run: |
+        import os
+        import re
+
+        tag_prefix = "refs/tags/v"
+        version = os.environ.get("LATEXML_TAG")
+        if version.startswith(tag_prefix):
+          version = version[len(tag_prefix):]
+
+        matches = re.search(r"[-\.]*(?P<suffix>[^\d\W]+)$", version)
+        if matches:
+          version = version.replace(matches.group(0), "-{}".format(matches.group(1)))
+
+        github_env = os.getenv('GITHUB_ENV', os.devnull)
+        os.system("echo PACKAGE_VERSION={} >> {}".format(version, github_env))
+    - name: update latexml.nuspec
+      run: |
+        xmllint --shell latexml.nuspec << EOF
+        setns ns=http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd
+        cd /ns:package/ns:metadata/ns:version
+        set ${PACKAGE_VERSION}
+        save
+        exit
+        EOF
+    - name: Push commit and tag
+      run: |
+        git add latexml.nuspec
+        git commit -m "Bump version to ${PACKAGE_VERSION}"
+        git tag v${PACKAGE_VERSION}
+        git push github HEAD:${GITHUB_REF} --tags

@@ -7,7 +7,7 @@
     <owners>ribose</owners>
     <title>LaTeXML</title>
     <authors>NIST</authors>
-    <iconUrl>https://dlmf.nist.gov/LaTeXML/x7.png</iconUrl>
+    <iconUrl>https://cdn.statically.io/gh/metanorma/chocolatey-latexml/main/icon.png</iconUrl>
     <projectUrl>https://dlmf.nist.gov/LaTeXML/</projectUrl>
     <copyright>Public Domain</copyright>
     <licenseUrl>https://creativecommons.org/share-your-work/public-domain/cc0</licenseUrl>

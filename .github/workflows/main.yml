@@ -45,10 +45,10 @@ jobs:
 
     - name: test latexml available in PATH
       run: |
-      $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
-      Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-      Update-SessionEnvironment
-      Get-Command latexml
+        $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
+        Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+        Update-SessionEnvironment
+        Get-Command latexml
 
     - name: test compilation
       run: |

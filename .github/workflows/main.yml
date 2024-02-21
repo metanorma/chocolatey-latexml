@@ -11,11 +11,11 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - run: choco pack
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: nupkg
         path: latexml.*.nupkg
@@ -24,9 +24,9 @@ jobs:
     runs-on: windows-latest
     needs: build
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         name: nupkg
 
@@ -45,8 +45,10 @@ jobs:
 
     - name: test latexml available in PATH
       run: |
-        Update-SessionEnvironment
-        Get-Command latexml
+      $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
+      Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+      Update-SessionEnvironment
+      Get-Command latexml
 
     - name: test compilation
       run: |
@@ -61,9 +63,9 @@ jobs:
     runs-on: windows-latest
     needs: test
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         name: nupkg
 

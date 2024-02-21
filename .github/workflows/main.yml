@@ -45,7 +45,7 @@ jobs:
 
     - name: test latexml available in PATH
       run: |
-        refreshenv
+        Update-SessionEnvironment
         Get-Command latexml
 
     - name: test compilation

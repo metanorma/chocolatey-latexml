@@ -2,80 +2,133 @@ name: main
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ main, master ]
     tags: [ 'v*' ]
+    paths-ignore:
+      - '*.adoc'
+      - 'LICENSE.adoc'
+      - 'icon.png'
   pull_request:
+    paths-ignore:
+      - '*.adoc'
+      - 'LICENSE.adoc'
+      - 'icon.png'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - run: choco pack
+      - name: Pack Chocolatey package
+        run: choco pack
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: nupkg
-        path: latexml.*.nupkg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: latexml.*.nupkg
 
   test:
     runs-on: windows-latest
     needs: build
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/download-artifact@v4
-      with:
-        name: nupkg
+      - uses: actions/download-artifact@v4
+        with:
+          name: nupkg
 
-    - run: choco install --no-progress latexml -dv -s "'.;https://chocolatey.org/api/v2/'"
+      - name: Install LaTeXML from local package
+        shell: powershell
+        run: choco install latexml --source="'$(Get-Location);chocolatey'" -y --no-progress
 
-    - run: choco install --no-progress wget unzip
+      - name: Verify LaTeXML installation
+        shell: powershell
+        run: |
+          # Refresh environment to pick up new PATH entries
+          $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
+          Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+          Update-SessionEnvironment
 
-    - name: install miktexsetup
-      shell: cmd
-      run: |
-        wget https://miktex.org/download/win/miktexsetup-x64.zip
-        unzip miktexsetup-x64.zip
-        setlocal enableextensions
-        md C:\temp\miktex
-        .\miktexsetup_standalone.exe --quiet --local-package-repository=C:\temp\miktex --package-set=basic download
+          if (Get-Command "latexml" -ErrorAction SilentlyContinue) {
+            Write-Host "[OK] latexml executable found"
+            latexml --VERSION
+          } else {
+            Write-Error "latexml executable not found in PATH"
+            exit 1
+          }
 
-    - name: test latexml available in PATH
-      run: |
-        $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
-        Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-        Update-SessionEnvironment
-        Get-Command latexml
+      - name: Install additional test dependencies
+        run: choco install --no-progress wget unzip
 
-    - name: test compilation
-      run: |
-        & latexml --dest=test.xml test.tex
-        if (!(Test-Path .\test.xml)) { exit 1 }
-        if (Select-String -Path .\test.xml -Pattern "ERROR") { exit 1 }
+      - name: Install MiKTeX for testing
+        shell: cmd
+        run: |
+          wget https://miktex.org/download/win/miktexsetup-x64.zip
+          unzip miktexsetup-x64.zip
+          setlocal enableextensions
+          md C:\temp\miktex
+          .\miktexsetup_standalone.exe --quiet --local-package-repository=C:\temp\miktex --package-set=basic download
 
-    - run: choco uninstall latexml -y
+      - name: Test LaTeXML conversion
+        shell: powershell
+        run: |
+          $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."
+          Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+          Update-SessionEnvironment
+
+          Write-Host "Testing LaTeXML conversion..." -ForegroundColor Green
+          & latexml --dest=test.xml test.tex
+
+          if (!(Test-Path .\test.xml)) {
+            Write-Error "test.xml was not created"
+            exit 1
+          }
+
+          if (Select-String -Path .\test.xml -Pattern "ERROR") {
+            Write-Error "Errors found in test.xml output"
+            exit 1
+          }
+
+          Write-Host "[OK] LaTeXML conversion test passed" -ForegroundColor Green
+
+      - name: Uninstall LaTeXML
+        run: choco uninstall latexml -y
+
+  test-scripts:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test installation/uninstallation scripts
+        shell: powershell
+        run: |
+          # Run comprehensive test suite
+          pwsh -ExecutionPolicy Bypass -File test/test_installation.ps1 -Verbose
 
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
-    needs: test
+    needs: [test, test-scripts]
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/download-artifact@v4
-      with:
-        name: nupkg
+      - uses: actions/download-artifact@v4
+        with:
+          name: nupkg
 
-    - name: push to chocolatey
-      env:
-        CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-      run: |
-        $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
-        $pkgVersion = Select-Xml -Path latexml.nuspec `
-             -XPath "/nuspec:package/nuspec:metadata/nuspec:version/text()" `
-             -Namespace $namespaces | Select-Object -Expand Node | Select-Object -Expand Data
-        choco apikey -key $Env:CHOCO_API_KEY -source https://chocolatey.org/
-        choco push latexml.${pkgVersion}.nupkg -source https://chocolatey.org/
+      - name: Push to Chocolatey
+        shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: |
+          $namespaces = @{nuspec = "http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd"}
+          $pkgVersion = Select-Xml -Path latexml.nuspec `
+               -XPath "/nuspec:package/nuspec:metadata/nuspec:version/text()" `
+               -Namespace $namespaces | Select-Object -Expand Node | Select-Object -Expand Data
+          choco apikey -key $Env:CHOCO_API_KEY -source https://chocolatey.org/
+          choco push latexml.${pkgVersion}.nupkg -source https://chocolatey.org/

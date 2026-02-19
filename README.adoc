@@ -4,15 +4,30 @@ image:https://img.shields.io/chocolatey/dt/latexml.svg["Downloads", link="https:
 
 = chocolatey-latexml: Chocolatey install for LaTeXML
 
-* https://github.com/metanorma/chocolatey-latexml[`main`] branch - for stable releases
-* https://github.com/metanorma/chocolatey-latexml/tree/beta[`beta`] branch - for releases from https://github.com/brucemiller/LaTeXML git
+== Repository purpose
+
+This repository is for developing the official LaTeXML Chocolatey package.
+End users should install LaTeXML directly from the official Chocolatey
+repository using standard Chocolatey commands.
+
+For end-user installation, see <<Installation from official repository>>.
+
+== Dependencies
+
+The LaTeXML Chocolatey package specifies dependencies in its `nupkg`:
+
+* `strawberryperl` (version 5.28+)
+
+When installing LaTeXML via Chocolatey, the dependency is resolved automatically.
+
 
 == Modifying the package
 
 . Edit the `latexml.nuspec` configuration file.
-. Edit the `./tools/chocolateyInstall.ps1` install script
-. Edit the `./tools/chocolateyUninstall.ps1` uninstall script
+. Edit the `./tools/chocolateyinstall.ps1` install script
+. Edit the `./tools/chocolateyuninstall.ps1` uninstall script
 . You **must** save your files with *UTF-8* character encoding without BOM.
+
 
 == Building the package
 
@@ -20,9 +35,31 @@ image:https://img.shields.io/chocolatey/dt/latexml.svg["Downloads", link="https:
 
 NOTE: If you are running this from a command prompt/Powershell prompt, you must run it "`as Administrator`".
 
+
 == Testing the package
 
-NOTE: Testing should be done on a Virtual Machine (See: https://github.com/chocolatey/chocolatey-test-environment)
+=== Automated testing
+
+The repository includes a PowerShell test script that validates the package structure:
+
+[source,powershell]
+----
+# Run all test scenarios (Windows)
+pwsh -ExecutionPolicy Bypass -File test/test_installation.ps1 -Verbose
+----
+
+The test script validates:
+
+* Nuspec file structure and required elements
+* Installation and uninstallation script presence
+* Strawberry Perl dependency specification
+* Error handling in scripts
+
+
+=== Manual testing
+
+NOTE: Manual testing should be done on a Virtual Machine (See:
+https://github.com/chocolatey/chocolatey-test-environment).
 
 In the package directory, use:
 
@@ -31,16 +68,20 @@ In the package directory, use:
 
 Or, use the full path:
 
-* `choco install latexml -source 'c:\path\to\package' -f`
+* `choco install latexml --source 'c:\path\to\package;chocolatey' -f`
 
-After executing the install, ensure that `latexml.exe` is installed by executing the following command from the command prompt:
+NOTE: It is important to include the Chocolatey source in the source list to
+ensure remote dependencies can be resolved.
+
+After executing the install, ensure that `latexml` is installed by executing:
 
 [source,sh]
 ----
-latexml version
+latexml --VERSION
 ----
 
 If it is properly installed, you will see the current version of LaTeXML.
+
 
 === Testing uninstallation
 
@@ -53,20 +94,20 @@ Execute the following command to uninstall LaTeXML.
 choco uninstall latexml -y
 ----
 
-After executing the uninstall ensure that `latexml` is not found in the Chocolatey install path.
-
-You can also try running `latexml --VERSION` from the command-line to see if it is still installed
+After executing the uninstall ensure that `latexml` is not found in the
+Chocolatey install path.
 
 
 == Publish the package to the Chocolatey community feed repository
 
 [source,sh]
 ----
-choco apikey -k [API_KEY_HERE] -source https://chocolatey.org/`
+choco apikey -k [API_KEY_HERE] -source https://chocolatey.org/
 
 # package name can be omitted below
 choco push latexml.[version num].nupkg -s https://chocolatey.org/
 ----
+
 
 == Installation from official repository
 
@@ -83,8 +124,37 @@ cinst latexml -y
 ----
 
 
-See the https://github.com/chocolatey/choco/wiki/CreatePackagesQuickStart[Chocolatey Packages Quick Start]
-for more information.
+== Release process
+
+=== Manual release
+
+. Go to Actions → release-tag workflow
+. Click "Run workflow"
+. Enter the version (e.g., `0.8.9` or `refs/tags/v0.8.9`)
+. The workflow will update `latexml.nuspec` and create a tag
+. The tag push triggers the main workflow to build, test, and publish
+
+=== Automatic release
+
+The repository supports `repository_dispatch` events with type `latexml-release`.
+To trigger an automatic release from another repository:
+
+[source,json]
+----
+{
+  "event_type": "latexml-release",
+  "client_payload": {
+    "ref": "refs/tags/v0.8.9"
+  }
+}
+----
+
+
+== Branch structure
+
+* https://github.com/metanorma/chocolatey-latexml[`main`] branch - for stable releases
+* https://github.com/metanorma/chocolatey-latexml/tree/beta[`beta`] branch - for releases from https://github.com/brucemiller/LaTeXML git
+
 
 See the https://github.com/chocolatey/choco/wiki/CreatePackagesQuickStart[Chocolatey Packages Quick Start]
 for more information.

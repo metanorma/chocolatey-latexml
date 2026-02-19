@@ -1,0 +1,127 @@
+name: cron-update
+
+on:
+  schedule:
+    # Run weekly on Sunday at 00:00 UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      needs_update: ${{ steps.check_version.outputs.needs_update }}
+      latest_version: ${{ steps.check_version.outputs.latest_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.METANORMA_CI_PAT_TOKEN }}
+
+      - name: Get current package version
+        id: current_version
+        run: |
+          xmllint --shell latexml.nuspec << EOF
+          cd /ns:package/ns:metadata/ns:version
+          print
+          exit
+          EOF
+          CURRENT=$(xmllint --shell latexml.nuspec << EOF 2>/dev/null
+          cd /ns:package/ns:metadata/ns:version
+          print
+          exit
+          EOF
+          )
+          CURRENT=$(echo "$CURRENT" | xargs | awk '{print $NF}')
+          echo "current_version=${CURRENT}" >> $GITHUB_OUTPUT
+
+      - name: Get latest LaTeXML version from GitHub releases
+        id: check_version
+        env:
+          GH_TOKEN: ${{ secrets.METANORMA_CI_PAT_TOKEN }}
+        run: |
+          # Get latest release tag from brucemiller/LaTeXML
+          LATEST=$(gh api repos/brucemiller/LaTeXML/releases/latest --jq '.tag_name' 2>/dev/null || echo "")
+          if [ -z "$LATEST" ]; then
+            # Fallback to listing tags
+            LATEST=$(gh api repos/brucemiller/LaTeXML/tags --jq '.[0].name' 2>/dev/null || echo "")
+          fi
+
+          # Remove 'v' prefix if present
+          VERSION="${LATEST#v}"
+          echo "Latest version on GitHub: ${VERSION}"
+          echo "latest_version=${VERSION}" >> $GITHUB_OUTPUT
+
+          # Check if version needs update
+          CURRENT="${{ steps.current_version.outputs.current_version }}"
+          echo "Current version in package: ${CURRENT}"
+
+          if [ -n "$VERSION" ] && [ "$VERSION" != "$CURRENT" ]; then
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+            echo "Version update needed: ${CURRENT} -> ${VERSION}"
+          else
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+            echo "No update needed (current: ${CURRENT}, latest: ${VERSION})"
+          fi
+
+      - name: Create or update PR for version update
+        if: needs_update == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.METANORMA_CI_PAT_TOKEN }}
+          CURRENT_VERSION: ${{ steps.current_version.outputs.current_version }}
+          LATEST_VERSION: ${{ steps.check_version.outputs.latest_version }}
+        run: |
+          BRANCH_NAME="feature/update-latexml-${LATEST_VERSION}"
+
+          # Check if branch exists
+          BRANCH_EXISTS=$(gh api repos/metanorma/chocolatey-latexml/git/refs/heads/${BRANCH_NAME} 2>/dev/null && echo "yes" || echo "no")
+
+          if [ "$BRANCH_EXISTS" = "no" ]; then
+            # Create new branch
+            git checkout -b ${BRANCH_NAME}
+          else
+            # Checkout existing branch
+            git fetch origin ${BRANCH_NAME}
+            git checkout ${BRANCH_NAME}
+          fi
+
+          # Update version in nuspec
+          CURRENT_YEAR=$(date +%Y)
+          xmllint --shell latexml.nuspec << EOF
+          setns ns=http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd
+          cd /ns:package/ns:metadata/ns:version
+          set ${LATEST_VERSION}
+          cd /ns:package/ns:metadata/ns:copyright
+          set ${CURRENT_YEAR} NIST
+          save
+          exit
+          EOF
+
+          # Commit changes
+          git config --global user.name "metanorma-ci"
+          git config --global user.email "metanorma-ci@users.noreply.github.com"
+          git add latexml.nuspec
+          git commit -m "chore: update LaTeXML to version ${LATEST_VERSION}"
+
+          # Push branch
+          git push origin ${BRANCH_NAME} --force
+
+          # Create or update PR
+          PR_TITLE="Update LaTeXML to version ${LATEST_VERSION}"
+          PR_BODY="This PR updates the LaTeXML package from version ${CURRENT_VERSION} to ${LATEST_VERSION}."
+
+          # Check if PR already exists
+          PR_URL=$(gh api repos/metanorma/chocolatey-latexml/pulls --jq ".[] | select(.head == \"${BRANCH_NAME}\") | .url" 2>/dev/null || echo "")
+
+          if [ -z "$PR_URL" ]; then
+            # Create new PR
+            gh pr create --title "${PR_TITLE}" --body "${PR_BODY}" --head ${BRANCH_NAME} --base main
+            echo "Created PR for version update ${CURRENT_VERSION} -> ${LATEST_VERSION}"
+          else
+            # Update existing PR
+            gh pr edit ${PR_URL} --title "${PR_TITLE}" --body "${PR_BODY}"
+            echo "Updated existing PR for version update ${CURRENT_VERSION} -> ${LATEST_VERSION}"
+          fi

@@ -22,10 +22,15 @@ if (-not (Test-Path $cpanmPath)) {
 
 Write-Host "Using cpanm from: $cpanmPath" -ForegroundColor Yellow
 
-# Uninstall LaTeXML
-Write-Host "Uninstalling LaTeXML version: $Env:ChocolateyPackageVersion" -ForegroundColor Yellow
+# Extract CPAN version from Chocolatey version (strip build revision)
+# Chocolatey version 0.8.8.1 -> CPAN version 0.8.8
+$chocoVersion = $Env:ChocolateyPackageVersion
+$cpanVersion = ($chocoVersion -split '\.')[0..2] -join '.'
 
-& $cpanmPath --verbose --uninstall --force "LaTeXML@$Env:ChocolateyPackageVersion" 2>&1 | Out-String | Write-Host
+# Uninstall LaTeXML
+Write-Host "Uninstalling LaTeXML version: $cpanVersion" -ForegroundColor Yellow
+
+& $cpanmPath --verbose --uninstall --force "LaTeXML@$cpanVersion" 2>&1 | Out-String | Write-Host
 
 if ($LASTEXITCODE -ne 0) {
   Write-Warning "cpanm uninstall exited with code: $LASTEXITCODE"

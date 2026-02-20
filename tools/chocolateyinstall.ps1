@@ -21,13 +21,20 @@ if (-not (Test-Path $cpanmPath)) {
 
 Write-Host "Using cpanm from: $cpanmPath" -ForegroundColor Yellow
 
+# Extract CPAN version from Chocolatey version (strip build revision)
+# Chocolatey version 0.8.8.1 -> CPAN version 0.8.8
+$chocoVersion = $Env:ChocolateyPackageVersion
+$cpanVersion = ($chocoVersion -split '\.')[0..2] -join '.'
+Write-Host "Chocolatey package version: $chocoVersion" -ForegroundColor Yellow
+Write-Host "CPAN module version: $cpanVersion" -ForegroundColor Yellow
+
 # Show dependencies being installed
 Write-Host "LaTeXML dependencies:" -ForegroundColor Yellow
-& $cpanmPath --showdeps "LaTeXML@$Env:ChocolateyPackageVersion" 2>&1 | Out-String | Write-Host
+& $cpanmPath --showdeps "LaTeXML@$cpanVersion" 2>&1 | Out-String | Write-Host
 
 # Install LaTeXML with --notest to skip tests (tests require TeX which may not be available)
-Write-Host "Installing LaTeXML version: $Env:ChocolateyPackageVersion" -ForegroundColor Yellow
-& $cpanmPath --notest "LaTeXML@$Env:ChocolateyPackageVersion" 2>&1 | Out-String | Write-Host
+Write-Host "Installing LaTeXML version: $cpanVersion" -ForegroundColor Yellow
+& $cpanmPath --notest "LaTeXML@$cpanVersion" 2>&1 | Out-String | Write-Host
 
 if ($LASTEXITCODE -ne 0) {
   throw "Failed to install LaTeXML. cpanm exited with code: $LASTEXITCODE"
